@@ -1,0 +1,38 @@
+﻿<UserControl x:Class="RestRunner.Views.Dialogs.CloneDialog"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:controls="http://metro.mahapps.com/winfx/xaml/controls"
+             xmlns:localcontrols="clr-namespace:RestRunner.Controls"
+             xmlns:conv="clr-namespace:RestRunner.Converters"
+             xmlns:helpers="clr-namespace:RestRunner.Helpers"
+             xmlns:local="clr-namespace:RestRunner.Views.Dialogs"
+             mc:Ignorable="d" 
+             d:DesignHeight="300" d:DesignWidth="500" Loaded="UserControl_Loaded">
+    <Grid Margin="0 10 0 0">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <StackPanel Orientation="Vertical">
+            <TextBlock Text="{Binding Title}" FontSize="{DynamicResource DialogTitleFontSize}" />
+            <TextBlock Text="{Binding NameTitle}" Margin="0,5,0,0" FontSize="{DynamicResource DialogMessageFontSize}" />
+            <TextBox Name="txtNewName" Margin="0,5,0,0"
+                 Text="{Binding ClonedName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                 FontSize="{DynamicResource DialogMessageFontSize}"
+                 controls:ControlsHelper.FocusBorderBrush="{DynamicResource AccentColorBrush}"
+                 controls:TextBoxHelper.SelectAllOnFocus="True" />
+            <TextBlock Text="Category" Margin="0,10,0,0" FontSize="{DynamicResource DialogMessageFontSize}" />
+            <ComboBox Margin="0,5,0,0"
+                      ItemsSource="{Binding Command.Categories, Source={StaticResource Locator}}"
+                      SelectedItem="{Binding Category, Mode=TwoWay}"
+                      DisplayMemberPath="Name" />
+        </StackPanel>
+
+        <StackPanel Grid.Row="1" Height="85" HorizontalAlignment="Right" Orientation="Horizontal">
+            <Button IsDefault="True" Height="35" MinWidth="80" Margin="0,0,5,0" Content="Done" Command="{Binding DoneCommand}" Style="{DynamicResource AccentedSquareButtonStyle}" />
+            <Button IsCancel="True" Height="35" MinWidth="80" Margin="5,0,5,0" Content="Cancel" Command="{Binding CancelCommand}" Style="{DynamicResource SquareButtonStyle}" />
+        </StackPanel>
+    </Grid>
+</UserControl>

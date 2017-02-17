@@ -1,0 +1,277 @@
+﻿<controls:MetroWindow x:Class="RestRunner.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="http://metro.mahapps.com/winfx/xaml/controls"
+        xmlns:pageViewModels="clr-namespace:RestRunner.ViewModels.Pages"
+        xmlns:pageViews="clr-namespace:RestRunner.Views.Pages"
+        xmlns:localcontrols="clr-namespace:RestRunner.Controls"
+        xmlns:conv="clr-namespace:RestRunner.Converters"
+        xmlns:componentModel="clr-namespace:System.ComponentModel;assembly=WindowsBase"
+        Title="Rest Runner" Height="900" Width="1366"
+        BorderBrush="{DynamicResource AccentColorBrush}"
+        BorderThickness="1"
+        Icon="./Images/Logo/rr_logo.png"
+        DataContext="{Binding Main, Source={StaticResource Locator}}"
+        WindowStartupLocation="CenterScreen"
+        WindowState="Maximized">
+
+    <controls:MetroWindow.Resources>
+        <DataTemplate DataType="{x:Type pageViewModels:CommandPageViewModel}">
+            <pageViews:CommandPageView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type pageViewModels:CommandChainPageViewModel}">
+            <pageViews:CommandChainView />
+        </DataTemplate>
+        <conv:MultiBoolOrVisibilityConverter x:Key="MultiBoolOrVisibilityConverter" />
+        <conv:BoolToOpacityConverter x:Key="BoolToOpacityConverter" />
+        <conv:IntToWarningDelayConverter x:Key="IntToWarningDelayConverter" />
+        <conv:StringHasValueToVisibilityInverseConverter x:Key="StringHasValueToVisibilityInverseConverter" />
+        <conv:SubstringConverter x:Key="SubstringConverter" />
+        <conv:HttpVerbToBrushConverter x:Key="HttpVerbToBrushConverter" />
+    </controls:MetroWindow.Resources>
+
+    <controls:MetroWindow.RightWindowCommands>
+        <controls:WindowCommands>
+            <Button Command="{Binding EnvironmentDisplayToggleCommand}" >
+                <TextBlock Text="{Binding EnvironmentButtonText}" Foreground="#FFF9C4" />
+            </Button>
+            <Button Command="{Binding SettingsDisplayToggleCommand}">
+                <StackPanel Orientation="Horizontal">
+                    <Rectangle Width="20" Height="20" Fill="{Binding RelativeSource={RelativeSource AncestorType=Button}, Path=Foreground}">
+                        <Rectangle.OpacityMask>
+                            <VisualBrush Stretch="Fill" Visual="{StaticResource appbar_settings}" />
+                        </Rectangle.OpacityMask>
+                    </Rectangle>
+                    <TextBlock Text="Settings" Margin="4 0 0 0" VerticalAlignment="Center"/>
+                </StackPanel>
+            </Button>
+            <Button Command="{Binding SaveCommand}">
+                <StackPanel Orientation="Horizontal">
+                    <Rectangle Width="20" Height="20" Fill="{Binding RelativeSource={RelativeSource AncestorType=Button}, Path=Foreground}">
+                        <Rectangle.OpacityMask>
+                            <VisualBrush Stretch="Fill" Visual="{StaticResource appbar_save}" />
+                        </Rectangle.OpacityMask>
+                    </Rectangle>
+                    <TextBlock Text="Save" Margin="4 0 0 0" VerticalAlignment="Center"/>
+                </StackPanel>
+            </Button>
+        </controls:WindowCommands>
+    </controls:MetroWindow.RightWindowCommands>
+
+    <controls:MetroWindow.Flyouts>
+        <controls:FlyoutsControl>
+            <!-- Command Category Flyout -->
+            <controls:Flyout Header="Edit Category" IsModal="True" IsPinned="False" Position="Left" Theme="Accent" IsOpen="{Binding IsCommandCategoryEditFlyoutOpen}">
+                <Grid Margin="10">
+                    <StackPanel Orientation="Vertical">
+                        <TextBlock Text="Name" Foreground="{DynamicResource IdealForegroundColorBrush}" />
+                        <TextBox Text="{Binding SelectedCommandCategory.Name}" Margin="0,5,0,0" Width="300" />
+                        <TextBlock Text="Base URL" Margin="0,10,0,0" Foreground="{DynamicResource IdealForegroundColorBrush}" />
+                        <TextBox Text="{Binding SelectedCommandCategory.BaseUrl}" Margin="0,5,0,0" Width="300" />
+                        <TextBlock Text="Credentials" Margin="0,10,0,0" Foreground="{DynamicResource IdealForegroundColorBrush}" />
+                        <ComboBox Text="{Binding SelectedCommandCategory.CredentialName}" Margin="0,5,0,0" IsEditable="True"
+                                  ItemsSource="{Binding SelectedEnvironment.Credentials}" DisplayMemberPath="Name" controls:TextBoxHelper.Watermark="Credentials" />
+                        <TextBlock Text="Username" Margin="0,10,0,0" Foreground="{DynamicResource IdealForegroundColorBrush}" Visibility="{Binding SelectedCommandCategory.CredentialName, Converter={StaticResource StringHasValueToVisibilityInverseConverter}}" />
+                        <TextBox Text="{Binding SelectedCommandCategory.Username}" Margin="0,5,0,0" Width="300" Visibility="{Binding SelectedCommandCategory.CredentialName, Converter={StaticResource StringHasValueToVisibilityInverseConverter}}" />
+                        <TextBlock Text="Password" Margin="0,10,0,0" Foreground="{DynamicResource IdealForegroundColorBrush}" Visibility="{Binding SelectedCommandCategory.CredentialName, Converter={StaticResource StringHasValueToVisibilityInverseConverter}}" />
+                        <localcontrols:BindablePasswordBox Password="{Binding SelectedCommandCategory.Password, Mode=TwoWay}" Margin="0,5,0,0" Width="300" Visibility="{Binding SelectedCommandCategory.CredentialName, Converter={StaticResource StringHasValueToVisibilityInverseConverter}}" />
+                    </StackPanel>
+                </Grid>
+            </controls:Flyout>
+
+            <!-- Chain Category Flyout -->
+            <controls:Flyout Header="Edit Category" IsModal="True" IsPinned="False" Position="Left" Theme="Accent" IsOpen="{Binding IsChainCategoryEditFlyoutOpen}">
+                <Grid Margin="10">
+                    <StackPanel Orientation="Vertical">
+                        <TextBlock Text="Name" Foreground="{DynamicResource IdealForegroundColorBrush}" />
+                        <TextBox Text="{Binding SelectedChainCategory.Name}" Margin="0,5,0,0" Width="300" />
+                    </StackPanel>
+                </Grid>
+            </controls:Flyout>
+
+            <!-- Chain Add Commands Flyout -->
+            <controls:Flyout Header="Add Commands" IsModal="True" IsPinned="False" Position="Left" Theme="Accent" IsOpen="{Binding IsChainAddCommandsFlyoutOpen}">
+                <controls:Flyout.Resources>
+                    <CollectionViewSource x:Key="CommandsViewSource" Source="{Binding Command.Commands, Source={StaticResource Locator}}">
+                        <CollectionViewSource.SortDescriptions>
+                            <componentModel:SortDescription PropertyName="Category"/>
+                            <componentModel:SortDescription PropertyName="Label"/>
+                        </CollectionViewSource.SortDescriptions>
+                        <CollectionViewSource.GroupDescriptions>
+                            <PropertyGroupDescription PropertyName="Category"/>
+                        </CollectionViewSource.GroupDescriptions>
+                    </CollectionViewSource>
+                </controls:Flyout.Resources>
+                <Grid Margin="0">
+                    <ListView ItemsSource="{Binding Source={StaticResource CommandsViewSource}}" Background="{StaticResource HighlightBrush}" Margin="0" BorderThickness="0">
+                        <ListView.GroupStyle>
+                            <GroupStyle>
+                                <GroupStyle.ContainerStyle>
+                                    <Style TargetType="{x:Type GroupItem}">
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate>
+                                                    <Expander Header="{Binding Name.Name}" IsExpanded="False" MinWidth="300">
+                                                        <Expander.HeaderTemplate>
+                                                            <DataTemplate>
+                                                                <TextBlock Text="{Binding}" Foreground="{StaticResource WhiteBrush}" />
+                                                            </DataTemplate>
+                                                        </Expander.HeaderTemplate>
+                                                        <ItemsPresenter />
+                                                    </Expander>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Style>
+                                </GroupStyle.ContainerStyle>
+                            </GroupStyle>
+                        </ListView.GroupStyle>
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="{Binding Verb, Converter={StaticResource SubstringConverter}, ConverterParameter=1}"
+                                        Foreground="{Binding Verb, Converter={StaticResource HttpVerbToBrushConverter}}" Width="8" FontWeight="Bold" Margin="5,0" />
+                                    <TextBlock Grid.Column="1" Name="txbCommandLabel" Text="{Binding Label}" MaxWidth="300" TextWrapping="Wrap" Foreground="{StaticResource WhiteBrush}"/>
+                                    <StackPanel Grid.Column="1" Name="spOverlay" Orientation="Horizontal" HorizontalAlignment="Right" Background="#0FFF" >
+                                        <StackPanel.Visibility>
+                                            <MultiBinding Converter="{StaticResource MultiBoolOrVisibilityConverter}">
+                                                <Binding ElementName="txbCommandLabel" Path="IsMouseOver" />
+                                                <Binding ElementName="spOverlay" Path="IsMouseOver" />
+                                            </MultiBinding>
+                                        </StackPanel.Visibility>
+                                        <Button Style="{DynamicResource RrMetroCircleButtonStyle}" Width="25" Height="25" Background="{StaticResource AccentColorBrush2}"
+                                                Command="{Binding CommandChain.AddCommandToSelectedChainCommand, Source={StaticResource Locator}}" CommandParameter="{Binding }">
+                                            <Rectangle Width="12" Height="12">
+                                                <Rectangle.Fill>
+                                                    <VisualBrush Stretch="Uniform" Visual="{StaticResource appbar_add_white}" />
+                                                </Rectangle.Fill>
+                                            </Rectangle>
+                                        </Button>
+                                    </StackPanel>
+                                </Grid>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </Grid>
+            </controls:Flyout>
+
+            <!-- Environment Flyout -->
+            <controls:Flyout Header="Environments" IsModal="True" IsPinned="False" Position="Right" Theme="Inverse" Width="400" IsOpen="{Binding IsEnvironmentFlyoutOpen}">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel Margin="10" Orientation="Vertical">
+                        <ListView Name="lsvEnvironments" ItemsSource="{Binding Environments}" BorderThickness="0" Padding="0"
+                              SelectedItem="{Binding SelectedEnvironment, Mode=TwoWay}" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                              IsSynchronizedWithCurrentItem="True" ScrollViewer.VerticalScrollBarVisibility="Disabled" Template="{StaticResource NoScrollListViewTemplate}">
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid Name="grdEnvironment" Background="#0FFF">
+                                        <TextBlock Name="txtName" Text="{Binding Name}" MaxWidth="300" Margin="4" TextWrapping="Wrap" HorizontalAlignment="Left"/>
+                                        <StackPanel Name="spOverlayEnv" Orientation="Horizontal" HorizontalAlignment="Right" Background="#0FFF" >
+                                            <StackPanel.Opacity>
+                                                <Binding Converter="{StaticResource BoolToOpacityConverter}" ElementName="spOverlayEnv" Path="IsMouseOver" />
+                                            </StackPanel.Opacity>
+                                            <StackPanel.Visibility>
+                                                <MultiBinding Converter="{StaticResource MultiBoolOrVisibilityConverter}">
+                                                    <Binding ElementName="grdEnvironment" Path="IsMouseOver" />
+                                                    <Binding ElementName="spOverlayEnv" Path="IsMouseOver" />
+                                                </MultiBinding>
+                                            </StackPanel.Visibility>
+                                            <Button Style="{DynamicResource RrMetroCircleButtonStyle}" Width="25" Height="25" Background="{StaticResource AccentColorBrush2}"
+                                        Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=ListView},Path=DataContext.AddEnvironmentCommand}" CommandParameter="{Binding }">
+                                                <Rectangle Width="12" Height="12">
+                                                    <Rectangle.Fill>
+                                                        <VisualBrush Stretch="Uniform" Visual="{StaticResource appbar_add_white}" />
+                                                    </Rectangle.Fill>
+                                                </Rectangle>
+                                            </Button>
+                                            <Button Style="{DynamicResource RrMetroCircleButtonStyle}" Width="25" Height="25" Background="{StaticResource AccentColorBrush2}"
+                                        Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=ListView},Path=DataContext.CloneEnvironmentCommand}" CommandParameter="{Binding }">
+                                                <Rectangle Width="12" Height="12">
+                                                    <Rectangle.Fill>
+                                                        <VisualBrush Stretch="Uniform" Visual="{StaticResource appbar_page_copy_white}" />
+                                                    </Rectangle.Fill>
+                                                </Rectangle>
+                                            </Button>
+                                            <Button Style="{DynamicResource RrMetroCircleButtonStyle}" Width="25" Height="25" Background="{StaticResource AccentColorBrush2}"
+                                        Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=ListView},Path=DataContext.RemoveEnvironmentCommand}" CommandParameter="{Binding }">
+                                                <Rectangle Width="12" Height="12">
+                                                    <Rectangle.Fill>
+                                                        <VisualBrush Stretch="Uniform" Visual="{StaticResource appbar_delete_white}" />
+                                                    </Rectangle.Fill>
+                                                </Rectangle>
+                                            </Button>
+                                        </StackPanel>
+                                    </Grid>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                        <TextBlock Text="Settings" Margin="0,10,0,0" FontSize="{StaticResource FlyoutHeaderFontSize}"/>
+                        <TextBox Text="{Binding SelectedEnvironment.Name}" controls:TextBoxHelper.Watermark="Name" Margin="0,5" />
+                        <TextBox Text="{Binding SelectedEnvironment.ExecutionWarningDelayMinutes, Converter={StaticResource IntToWarningDelayConverter}}" controls:TextBoxHelper.Watermark="Execution Warning Delay (in minutes)" Margin="0,5" PreviewTextInput="TextBox_OnPreviewTextInput" />
+                        <TextBox Text="{Binding SelectedEnvironment.Description}" controls:TextBoxHelper.Watermark="Description" Margin="0,5" AcceptsReturn="True" MinHeight="50" TextWrapping="Wrap" />
+                        <TextBlock Text="Variables" Margin="0,10,0,0" FontSize="{StaticResource FlyoutHeaderFontSize}"/>
+                        <localcontrols:CaptionedKeyValuePairEditGrid Items="{Binding SelectedEnvironment.Variables}" KeyWatermark="Header" ValueWatermark="Value" />
+                        <TextBlock Text="Credentials" Margin="0,10,0,0" FontSize="{StaticResource FlyoutHeaderFontSize}"/>
+                        <localcontrols:RestCredentialEditGrid Items="{Binding SelectedEnvironment.Credentials}" />
+                        <Button Content="Globals" Command="{Binding GlobalsDisplayToggleCommand}" Margin="0,10" HorizontalAlignment="Left" MinWidth="75" />
+                    </StackPanel>
+                </ScrollViewer>
+            </controls:Flyout>
+
+            <!-- Global Flyout -->
+            <controls:Flyout Header="Globals" IsModal="True" IsPinned="False" Position="Right" Theme="Inverse" Width="400" IsOpen="{Binding IsGlobalsFlyoutOpen}">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel Margin="10" Orientation="Vertical">
+                        <TextBlock Text="Variables" Margin="0,10,0,0" FontSize="{StaticResource FlyoutHeaderFontSize}"/>
+                        <localcontrols:CaptionedKeyValuePairEditGrid Items="{Binding GlobalEnvironment.Variables}" KeyWatermark="Header" ValueWatermark="Value" />
+                        <TextBlock Text="Credentials" Margin="0,10,0,0" FontSize="{StaticResource FlyoutHeaderFontSize}"/>
+                        <localcontrols:RestCredentialEditGrid Items="{Binding GlobalEnvironment.Credentials}" />
+                    </StackPanel>
+                </ScrollViewer>
+            </controls:Flyout>
+
+            <!-- Settings Flyout -->
+            <controls:Flyout Header="Settings" IsModal="True" IsPinned="False" Position="Right" Theme="Inverse" Width="400" IsOpen="{Binding IsSettingsFlyoutOpen}">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel Margin="10" Orientation="Vertical">
+                        <CheckBox Content="Replace 'localhost'/'127.0.0.1' with machine name" IsChecked="{Binding ReplaceLocalHostWithMachine}" Margin="0,0,0,10"
+                                  ToolTip="This allows requests to work with Fiddler, as 'localhost' and '127.0.0.1' skip Fiddler's proxy"></CheckBox>
+                        <CheckBox Content="Ignore Certificate Errors" IsChecked="{Binding IgnoreCertificateErrors}" Margin="0,10"
+                                  ToolTip="If checked, https calls that don't receive a valid certifiacate will still work.  This is helpful for test sites that don't have full certificates"></CheckBox>
+                        <StackPanel Orientation="Horizontal">
+                            <Button Content="Import" Command="{Binding ImportCommand}" HorizontalAlignment="Left" MinWidth="75" Margin="0,10" Style="{DynamicResource SquareButtonStyle}" />
+                            <Button Content="Import From Postman" Command="{Binding ImportPostmanCommand}" HorizontalAlignment="Left" MinWidth="75" Margin="10,10" Style="{DynamicResource SquareButtonStyle}" />
+                        </StackPanel>
+                        <Button Content="Export" Command="{Binding ExportCommand}" IsEnabled="True" HorizontalAlignment="Left" MinWidth="75" Margin="0,10" Style="{DynamicResource SquareButtonStyle}" />
+                    </StackPanel>
+                </ScrollViewer>
+            </controls:Flyout>
+
+            <!-- Save Notification Flyout -->
+            <controls:Flyout Position="Bottom" Theme="Accent" IsOpen="{Binding IsSavedNotificationOpen}" CloseButtonVisibility="Collapsed" TitleVisibility="Collapsed">
+                <Grid Margin="10">
+                    <TextBlock Text="{Binding NotificationMessage}" Foreground="{DynamicResource IdealForegroundColorBrush}" />
+                </Grid>
+            </controls:Flyout>
+        </controls:FlyoutsControl>
+    </controls:MetroWindow.Flyouts>
+
+    <Grid Margin="0">
+        <controls:MetroAnimatedSingleRowTabControl ItemsSource="{Binding PageViewModels}" >
+            <controls:MetroAnimatedSingleRowTabControl.ItemTemplate>
+                <DataTemplate>
+                    <TextBlock Text="{Binding Title}" />
+                </DataTemplate>
+            </controls:MetroAnimatedSingleRowTabControl.ItemTemplate>
+            <controls:MetroAnimatedSingleRowTabControl.ContentTemplate>
+                <DataTemplate>
+                    <ContentPresenter Content="{Binding View}" />
+                </DataTemplate>
+            </controls:MetroAnimatedSingleRowTabControl.ContentTemplate>
+        </controls:MetroAnimatedSingleRowTabControl>
+    </Grid>
+</controls:MetroWindow>

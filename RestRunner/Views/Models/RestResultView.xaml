@@ -1,0 +1,58 @@
+﻿<UserControl x:Class="RestRunner.Views.Models.RestResultView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:controls="http://metro.mahapps.com/winfx/xaml/controls"
+             xmlns:converters="clr-namespace:RestRunner.Converters"
+             mc:Ignorable="d" 
+             d:DesignHeight="400" d:DesignWidth="400">
+    
+    <UserControl.Resources>
+        <converters:TimeSpanToStringConverter x:Key="TimeSpanToStringConverter" />
+        <converters:HttpStatusCodeToBrushConverter x:Key="HttpStatusCodeToBrushConverter" />
+        <converters:BoolToAccentBrushConverter x:Key="BoolToAccentBrushConverter" />
+    </UserControl.Resources>
+    
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"></RowDefinition>
+            <RowDefinition Height="*"></RowDefinition>
+        </Grid.RowDefinitions>
+        <DockPanel Margin="0,0,0,10" Background="{Binding HadTransmissionError, Converter={StaticResource BoolToAccentBrushConverter}, ConverterParameter=false}">
+            <Border CornerRadius="5" Margin="5,4" Width="30" Background="{Binding StatusCode, Converter={StaticResource HttpStatusCodeToBrushConverter}}">
+                <TextBlock Text="{Binding StatusCode, FallbackValue=200}" Padding="5,0" Foreground="{StaticResource IdealForegroundColorBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+            </Border>
+            <TextBlock Text="{Binding Command.Label}" FontWeight="Bold" Padding="5" Foreground="{StaticResource IdealForegroundColorBrush}" />
+            <TextBlock Text="{Binding Duration, Converter={StaticResource TimeSpanToStringConverter}}" Padding="5" Foreground="{StaticResource IdealForegroundColorBrush}" />
+            <Button Style="{DynamicResource RrMetroCircleButtonStyle}" Width="25" Height="25" Background="{StaticResource AccentColorBrush2}" HorizontalAlignment="Right"
+                                        Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=ListView},Path=DataContext.RemoveResultCommand}" CommandParameter="{Binding }">
+                <Rectangle Width="12" Height="12">
+                    <Rectangle.Fill>
+                        <VisualBrush Stretch="Uniform" Visual="{StaticResource appbar_delete_white}" />
+                    </Rectangle.Fill>
+                </Rectangle>
+            </Button>
+        </DockPanel>
+        <controls:MetroAnimatedTabControl Grid.Row="1" SelectedIndex="1">
+            <TabItem Header="Input">
+                <TextBox Text="{Binding RequestBody, Mode=OneWay}" Background="Transparent" BorderThickness="0"
+                         IsReadOnly="True" IsTabStop="False" TextWrapping="Wrap" FontFamily="Consolas" />
+            </TabItem>
+            <TabItem Header="Response">
+                <TextBox Text="{Binding ResponseBody, Mode=OneWay}" Background="Transparent" BorderThickness="0"
+                         IsReadOnly="True" IsTabStop="False" TextWrapping="Wrap" FontFamily="Consolas" />
+            </TabItem>
+            <TabItem Header="Headers">
+                <StackPanel Orientation="Vertical">
+                    <TextBlock Text="Input" Margin="6,10,0,0" FontSize="{StaticResource FlyoutHeaderFontSize}"/>
+                    <TextBox Text="{Binding InputHeadersDisplay, Mode=OneWay}" Background="Transparent" BorderThickness="0"
+                             IsReadOnly="True" IsTabStop="False" TextWrapping="Wrap" FontFamily="Consolas" />
+                    <TextBlock Text="Response" Margin="6,10,0,0" FontSize="{StaticResource FlyoutHeaderFontSize}"/>
+                    <TextBox Text="{Binding OutputHeadersDisplay, Mode=OneWay}" Background="Transparent" BorderThickness="0"
+                         IsReadOnly="True" IsTabStop="False" TextWrapping="Wrap" FontFamily="Consolas" />
+                </StackPanel>
+            </TabItem>
+        </controls:MetroAnimatedTabControl>
+    </Grid>
+</UserControl>

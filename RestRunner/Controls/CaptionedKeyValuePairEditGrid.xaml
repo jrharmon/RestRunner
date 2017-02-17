@@ -1,0 +1,43 @@
+﻿<controls:EditGridControlBase x:TypeArguments="models:CaptionedKeyValuePair" x:Class="RestRunner.Controls.CaptionedKeyValuePairEditGrid"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:controls="clr-namespace:RestRunner.Controls"
+             xmlns:models="clr-namespace:RestRunner.Models"
+             xmlns:metrocontrols="http://metro.mahapps.com/winfx/xaml/controls"
+             mc:Ignorable="d"
+             d:DesignHeight="300" d:DesignWidth="300">
+    <Grid Name="grdMain" Grid.IsSharedSizeScope="True">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <ListView Name="lsvMain" ItemsSource="{Binding Items}" BorderThickness="0" Padding="-5,0"
+                  ScrollViewer.HorizontalScrollBarVisibility="Disabled" Background="Transparent" Template="{StaticResource NoScrollListViewTemplate}">
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <Grid Margin="0,5">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="A" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="B" />
+                        </Grid.ColumnDefinitions>
+                        <TextBox Name="txtKey" Grid.Column="0" MinWidth="100" Margin="5,0" Text="{Binding Key, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                        <TextBox Name="txtValue" Grid.Column="1" Margin="5,0" Text="{Binding Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                        <Button Grid.Column="2" Margin="5,0" MinWidth="25" Click="RemoveButton_Click" IsTabStop="False" Content="✖" />
+                    </Grid>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+        <Grid Grid.Row="1" Margin="0,5,0,5">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" SharedSizeGroup="A" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" SharedSizeGroup="B" />
+            </Grid.ColumnDefinitions>
+            <TextBox Name="txtNewKey" Grid.Column="0" MinWidth="100" Margin="0,0,10,0" Text="{Binding NewItem.Key, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" TextChanged="TextBox_TextChanged" metrocontrols:TextBoxHelper.Watermark="{Binding KeyWatermark}" />
+            <TextBox Name="txtNewValue" Grid.Column="1" Margin="0" Text="{Binding NewItem.Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" TextChanged="TextBox_TextChanged" metrocontrols:TextBoxHelper.Watermark="{Binding ValueWatermark}" />
+        </Grid>
+    </Grid>
+</controls:EditGridControlBase>

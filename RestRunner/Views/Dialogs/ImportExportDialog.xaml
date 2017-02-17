@@ -1,0 +1,86 @@
+﻿<UserControl x:Class="RestRunner.Views.Dialogs.ImportExportDialog"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:models="clr-namespace:RestRunner.Views.Models"
+             xmlns:local="clr-namespace:RestRunner.Views.Dialogs"
+             xmlns:design="clr-namespace:RestRunner.Design"
+             xmlns:controls="http://metro.mahapps.com/winfx/xaml/controls"
+             mc:Ignorable="d" 
+             d:DesignHeight="400" d:DesignWidth="800"
+             d:DataContext="{d:DesignInstance design:DesignImportExportViewModel}">
+
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+    </UserControl.Resources>
+
+    <Grid Margin="0 10 0 0">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <TextBlock Text="{Binding Title}" FontSize="{DynamicResource DialogTitleFontSize}" />
+        
+        <!--Command Categories-->
+        <StackPanel Grid.Row="1" Orientation="Vertical" VerticalAlignment="Stretch" Margin="0,0,10,0">
+            <TextBlock Text="Command Categories" Margin="0,5,0,10" FontSize="{DynamicResource DialogMessageFontSize}" />
+            <ListView ItemsSource="{Binding CommandCategories}" MinHeight="200" MaxHeight="800">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <models:ImportExportItemView DataContext="{Binding}" />
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+        </StackPanel>
+
+        <!--Chain Categories-->
+        <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Vertical" VerticalAlignment="Stretch" Margin="10,0">
+            <TextBlock Text="Chain Categories" Margin="0,5,0,10" FontSize="{DynamicResource DialogMessageFontSize}" />
+            <ListView ItemsSource="{Binding ChainCategories}">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <models:ImportExportItemView DataContext="{Binding}" />
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+        </StackPanel>
+
+        <!--Environments-->
+        <StackPanel Grid.Row="1" Grid.Column="2" Orientation="Vertical" Margin="10,0,0,0">
+            <TextBlock Text="Environments" Margin="0,5,0,10" FontSize="{DynamicResource DialogMessageFontSize}" />
+            <ListView ItemsSource="{Binding Environments}">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <models:ImportExportItemView DataContext="{Binding}" />
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+        </StackPanel>
+
+        <!--Description-->
+        <StackPanel Grid.Row="2" Grid.ColumnSpan="3" Margin="0,5" Orientation="Vertical">
+            <TextBlock Text="Description" FontSize="{DynamicResource WindowTitleFontSize}" Margin="0,10,0,0" />
+            <TextBox Text="{Binding Description, Mode=TwoWay}" Margin="0,5" MinHeight="100" AcceptsReturn="True" HorizontalAlignment="Stretch" IsReadOnly="{Binding IsImport}" />
+        </StackPanel>
+
+        <!--Conflict Warning-->
+        <StackPanel Grid.Row="3" Grid.ColumnSpan="3" Visibility="{Binding ContainsConflicts, Converter={StaticResource BoolToVis}}" Margin="0,5" Orientation="Vertical">
+            <TextBlock Text="Any highlighted categories/environments contain items that will overwrite an existing item." Foreground="Red" />
+        </StackPanel>
+
+        <!--Buttons-->
+        <StackPanel Grid.Row="4" Grid.Column="2" Height="85" HorizontalAlignment="Right" Orientation="Horizontal">
+            <Button IsDefault="True" Height="35" MinWidth="80" Margin="0,0,5,0" Content="{Binding DoneCaption}" Command="{Binding DoneCommand}" Style="{DynamicResource AccentedSquareButtonStyle}" />
+            <Button IsCancel="True" Height="35" MinWidth="80" Margin="5,0,5,0" Content="Cancel" Command="{Binding CancelCommand}" Style="{DynamicResource SquareButtonStyle}" />
+        </StackPanel>
+    </Grid>
+</UserControl>

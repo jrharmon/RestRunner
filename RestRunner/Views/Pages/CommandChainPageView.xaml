@@ -1,0 +1,279 @@
+﻿<UserControl x:Class="RestRunner.Views.Pages.CommandChainView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:models="clr-namespace:RestRunner.Views.Models"
+             xmlns:controls="http://metro.mahapps.com/winfx/xaml/controls"
+             xmlns:localcontrols="clr-namespace:RestRunner.Controls"
+             xmlns:conv="clr-namespace:RestRunner.Converters"
+             xmlns:helpers="clr-namespace:RestRunner.Helpers"
+             xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
+             xmlns:behaviors="clr-namespace:RestRunner.Behaviors"
+             xmlns:componentModel="clr-namespace:System.ComponentModel;assembly=WindowsBase"
+             mc:Ignorable="d" 
+             d:DesignWidth="1366" d:DesignHeight="768"
+             DataContext="{Binding CommandChain, Source={StaticResource Locator}}">
+
+    <UserControl.Resources>
+        <CollectionViewSource x:Key="ChainsViewSource" Source="{Binding Chains}">
+            <CollectionViewSource.SortDescriptions>
+                <componentModel:SortDescription PropertyName="Category"/>
+                <componentModel:SortDescription PropertyName="Label"/>
+            </CollectionViewSource.SortDescriptions>
+            <CollectionViewSource.GroupDescriptions>
+                <PropertyGroupDescription PropertyName="Category"/>
+            </CollectionViewSource.GroupDescriptions>
+        </CollectionViewSource>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+        <conv:BoolToOpacityConverter x:Key="BoolToOpacityConverter" />
+        <conv:IntToVisibilityConverter x:Key="IntToVisibilityConverter" />
+        <conv:IntToVisibilityInverseConverter x:Key="IntToVisibilityInverseConverter" />
+        <conv:MultiBoolOrVisibilityConverter x:Key="MultiBoolOrVisibilityConverter" />
+        <conv:StringHasValueToVisibilityInverseConverter x:Key="StringHasValueToVisibilityInverseConverter" />
+        <conv:TimeSpanToStringConverter x:Key="TimeSpanToStringConverter" />
+    </UserControl.Resources>
+
+    <Grid helpers:AccessKeyScoper.IsAccessKeyScope="True">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="10"/>
+            <ColumnDefinition Width="4*"/>
+            <ColumnDefinition Width="10"/>
+            <ColumnDefinition Width="6*"/>
+            <ColumnDefinition Width="10"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        
+        <!--Chain List-->
+        <ListView Grid.RowSpan="2" Background="{StaticResource HighlightBrush}" ItemsSource="{Binding Source={StaticResource ChainsViewSource}}" SelectedItem="{Binding SelectedChain}" Margin="0" BorderThickness="0">
+            <ListView.GroupStyle>
+                <GroupStyle>
+                    <GroupStyle.ContainerStyle>
+                        <Style TargetType="{x:Type GroupItem}">
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate>
+                                        <Expander Header="{Binding Name.Name}" IsExpanded="{Binding Name.IsExpanded}" MinWidth="300">
+                                            <Expander.HeaderTemplate>
+                                                <DataTemplate>
+                                                    <DockPanel>
+                                                        <Button DockPanel.Dock="Right" Margin="0,-4" Style="{DynamicResource RrMetroCircleButtonStyle}" Width="25" Height="25"
+                                                                Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=ListView},Path=DataContext.EditCategoryCommand}" CommandParameter="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=Expander},Path=DataContext.Name}">
+                                                            <Rectangle Width="12" Height="12">
+                                                                <Rectangle.Fill>
+                                                                    <VisualBrush Stretch="Uniform" Visual="{StaticResource appbar_edit_white}" />
+                                                                </Rectangle.Fill>
+                                                            </Rectangle>
+                                                        </Button>
+                                                        <Button DockPanel.Dock="Right" Margin="0,-4" Style="{DynamicResource RrMetroCircleButtonStyle}" Width="25" Height="25"
+                                                                Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=ListView},Path=DataContext.AddChainToCategoryCommand}" CommandParameter="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=Expander},Path=DataContext.Name}">
+                                                            <Rectangle Width="12" Height="12">
+                                                                <Rectangle.Fill>
+                                                                    <VisualBrush Stretch="Uniform" Visual="{StaticResource appbar_add_white}" />
+                                                                </Rectangle.Fill>
+                                                            </Rectangle>
+                                                        </Button>
+                                                        <TextBlock DockPanel.Dock="Left" Text="{Binding}" Foreground="{StaticResource WhiteBrush}"></TextBlock>
+                                                    </DockPanel>
+                                                </DataTemplate>
+                                            </Expander.HeaderTemplate>
+                                            <ItemsPresenter />
+                                        </Expander>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </GroupStyle.ContainerStyle>
+                </GroupStyle>
+            </ListView.GroupStyle>
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <Grid>
+                        <TextBlock Name="txbCommandLabel" Text="{Binding Label}" MaxWidth="300" TextWrapping="Wrap" Foreground="{StaticResource WhiteBrush}"/>
+                        <StackPanel Name="spOverlay" Orientation="Horizontal" HorizontalAlignment="Right" Background="#0FFF" >
+                            <StackPanel.Opacity>
+                                <Binding Converter="{StaticResource BoolToOpacityConverter}" ElementName="spOverlay" Path="IsMouseOver" />
+                            </StackPanel.Opacity>
+                            <StackPanel.Visibility>
+                                <MultiBinding Converter="{StaticResource MultiBoolOrVisibilityConverter}">
+                                    <Binding ElementName="txbCommandLabel" Path="IsMouseOver" />
+                                    <Binding ElementName="spOverlay" Path="IsMouseOver" />
+                                </MultiBinding>
+                            </StackPanel.Visibility>
+                            <Button Style="{DynamicResource RrMetroCircleButtonStyle}" Width="25" Height="25" Background="{StaticResource AccentColorBrush2}"
+                                    Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=ListView},Path=DataContext.CloneChainCommand}" CommandParameter="{Binding }">
+                                <Rectangle Width="12" Height="12">
+                                    <Rectangle.Fill>
+                                        <VisualBrush Stretch="Uniform" Visual="{StaticResource appbar_page_copy_white}" />
+                                    </Rectangle.Fill>
+                                </Rectangle>
+                            </Button>
+                            <Button Style="{DynamicResource RrMetroCircleButtonStyle}" Width="25" Height="25" Background="{StaticResource AccentColorBrush2}"
+                                    Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=ListView},Path=DataContext.RemoveChainCommand}" CommandParameter="{Binding }">
+                                <Rectangle Width="12" Height="12">
+                                    <Rectangle.Fill>
+                                        <VisualBrush Stretch="Uniform" Visual="{StaticResource appbar_delete_white}" />
+                                    </Rectangle.Fill>
+                                </Rectangle>
+                            </Button>
+                        </StackPanel>
+                    </Grid>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+        <Button Grid.Row="0" Grid.Column="0" Grid.RowSpan="2" Margin="10" Style="{DynamicResource RrMetroCircleButtonStyle}" Width="34" Height="34" HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                Command="{Binding AddCategoryCommand}">
+            <Rectangle Width="26" Height="20">
+                <Rectangle.Fill>
+                    <VisualBrush Stretch="Uniform" Visual="{StaticResource appbar_add_white}" />
+                </Rectangle.Fill>
+            </Rectangle>
+        </Button>
+
+        <!--Selected Chain-->
+        <Grid Grid.Column="2" Grid.Row="0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <TextBlock Text="{Binding SelectedChain.Label}" FontSize="{DynamicResource WindowTitleFontSize}" Margin="0,-5,0,5" />
+            <Expander Grid.Row="1" Header="CHAIN SETTINGS/DEFAULTS" Margin="0">
+                <Expander.HeaderTemplate>
+                    <DataTemplate>
+                        <DockPanel>
+                            <Button DockPanel.Dock="Right" Margin="0,-4" Style="{DynamicResource RrMetroCircleButtonStyle}" Width="25" Height="25"
+                                    Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=Expander},Path=DataContext.AddCommandsCommand}">
+                                <Rectangle Width="12" Height="12">
+                                    <Rectangle.Fill>
+                                        <VisualBrush Stretch="Uniform" Visual="{StaticResource appbar_add_white}" />
+                                    </Rectangle.Fill>
+                                </Rectangle>
+                            </Button>
+                            <TextBlock DockPanel.Dock="Left" Text="{Binding}" Foreground="{StaticResource WhiteBrush}"></TextBlock>
+                        </DockPanel>
+                    </DataTemplate>
+                </Expander.HeaderTemplate>
+                <StackPanel Orientation="Vertical">
+                    <TextBox Text="{Binding SelectedChain.Label, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10" controls:TextBoxHelper.Watermark="Label" />
+                    <TextBox Text="{Binding SelectedChain.DefaultCommandCategory.BaseUrl, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10" controls:TextBoxHelper.Watermark="Base URL" />
+                    <ComboBox Text="{Binding SelectedChain.DefaultCommandCategory.CredentialName}" Margin="0,0,0,10" IsEditable="True"
+                                  ItemsSource="{Binding Main.SelectedEnvironment.Credentials, Source={StaticResource Locator}}"
+                                  DisplayMemberPath="Name" controls:TextBoxHelper.Watermark="Credentials" />
+                    <TextBox Text="{Binding SelectedChain.DefaultCommandCategory.Username, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10" controls:TextBoxHelper.Watermark="Username" Visibility="{Binding SelectedChain.DefaultCommandCategory.CredentialName, Converter={StaticResource StringHasValueToVisibilityInverseConverter}}" />
+                    <PasswordBox localcontrols:PasswordBoxHelper.BindPassword="True"
+                                 localcontrols:PasswordBoxHelper.Password="{Binding SelectedChain.DefaultCommandCategory.Password, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                                 Margin="0,0,0,10" controls:TextBoxHelper.Watermark="Password" Visibility="{Binding SelectedChain.DefaultCommandCategory.CredentialName, Converter={StaticResource StringHasValueToVisibilityInverseConverter}}" />
+                    <TextBox Text="{Binding SelectedChain.Description, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10" controls:TextBoxHelper.Watermark="Description"
+                         AcceptsReturn="True" MinHeight="50" TextWrapping="Wrap"/>
+                </StackPanel>
+            </Expander>
+            <TextBlock Grid.Row="2" Text="Please add a command to this chain, using the + button above" HorizontalAlignment="Center" Visibility="{Binding SelectedChain.Commands.Count, Converter={StaticResource IntToVisibilityConverter}}" Margin="0,10,0,0" />
+            <ListView Grid.Row="3" ItemsSource="{Binding SelectedChain.Commands}" BorderThickness="0" Padding="0" Margin="0,0,0,10"
+                              SelectedItem="{Binding SelectedCommand, Mode=TwoWay}" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                              AllowDrop="True">
+                <ListView.ItemContainerStyle>
+                    <Style TargetType="ListViewItem">
+                        <Setter Property="HorizontalContentAlignment" Value="Stretch"></Setter>
+                        <EventSetter Event="PreviewMouseMove" Handler="List_OnMouseMove"></EventSetter>
+                        <EventSetter Event="Drop" Handler="List_OnDrop"></EventSetter>
+                    </Style>
+                </ListView.ItemContainerStyle>
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <Grid Name="grdCommand" Background="#0FFF">
+                            <TextBlock Name="txtName" Text="{Binding Label}" MaxWidth="300" Margin="4" TextWrapping="Wrap" HorizontalAlignment="Left"/>
+                            <StackPanel Name="spOverlayEnv" Orientation="Horizontal" HorizontalAlignment="Right" Background="#0FFF" >
+                                <StackPanel.Opacity>
+                                    <Binding Converter="{StaticResource BoolToOpacityConverter}" ElementName="spOverlayEnv" Path="IsMouseOver" />
+                                </StackPanel.Opacity>
+                                <StackPanel.Visibility>
+                                    <MultiBinding Converter="{StaticResource MultiBoolOrVisibilityConverter}">
+                                        <Binding ElementName="grdCommand" Path="IsMouseOver" />
+                                        <Binding ElementName="spOverlayEnv" Path="IsMouseOver" />
+                                    </MultiBinding>
+                                </StackPanel.Visibility>
+                                <Button Style="{DynamicResource RrMetroCircleButtonStyle}" Width="25" Height="25" Background="{StaticResource AccentColorBrush2}"
+                                        Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=ListView},Path=DataContext.CloneCommandCommand}" CommandParameter="{Binding }">
+                                    <Rectangle Width="12" Height="12">
+                                        <Rectangle.Fill>
+                                            <VisualBrush Stretch="Uniform" Visual="{StaticResource appbar_page_copy_white}" />
+                                        </Rectangle.Fill>
+                                    </Rectangle>
+                                </Button>
+                                <Button Style="{DynamicResource RrMetroCircleButtonStyle}" Width="25" Height="25" Background="{StaticResource AccentColorBrush2}"
+                                        Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=ListView},Path=DataContext.RemoveCommandCommand}" CommandParameter="{Binding }">
+                                    <Rectangle Width="12" Height="12">
+                                        <Rectangle.Fill>
+                                            <VisualBrush Stretch="Uniform" Visual="{StaticResource appbar_delete_white}" />
+                                        </Rectangle.Fill>
+                                    </Rectangle>
+                                </Button>
+                            </StackPanel>
+                        </Grid>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+
+            <models:RestCommand Grid.Row="4" DataContext="{Binding SelectedCommand}"></models:RestCommand>
+        </Grid>
+        <DockPanel Grid.Column="2" Grid.Row="1" LastChildFill="False">
+            <Button DockPanel.Dock="Left" Command="{Binding ExecuteSelectedChainCommand}" MinWidth="75" Margin="0,10,0,10" IsDefault="True" Style="{DynamicResource AccentedSquareButtonStyle}">Submit</Button>
+            <Button DockPanel.Dock="Left" Command="{Binding CancelChainCommand}" MinWidth="75" Margin="10,10,0,10" Style="{DynamicResource SquareButtonStyle}">Cancel</Button>
+            <controls:DropDownButton DockPanel.Dock="Left" Content="Submit Multiple" ItemsSource="{Binding ExecuteMultipleCommands}" DisplayMemberPath="Caption" MinWidth="75" Margin="10,10,0,10" >
+                <controls:DropDownButton.ItemContainerStyle>
+                    <Style TargetType="MenuItem">
+                        <Setter Property="Command" Value="{Binding Path=Command}"/>
+                </Style>
+                </controls:DropDownButton.ItemContainerStyle>
+            </controls:DropDownButton>
+
+            <StackPanel Orientation="Horizontal" Visibility="{Binding MultipleExecutionProgress, Converter={StaticResource IntToVisibilityInverseConverter}, ConverterParameter=-1}">
+                <TextBlock Text="{Binding MultipleExecutionProgress}" Margin="10,0,0,0" VerticalAlignment="Center"/>
+                <TextBlock Text="{Binding BusyDuration, Converter={StaticResource TimeSpanToStringConverter}}" Margin="10,0,0,0" VerticalAlignment="Center"/>
+            </StackPanel>
+            <TextBlock Text="{Binding BusyDuration, Converter={StaticResource TimeSpanToStringConverter}, ConverterParameter=true}" Margin="10,0,0,0" VerticalAlignment="Center"
+                       Visibility="{Binding MultipleExecutionProgress, Converter={StaticResource IntToVisibilityConverter}, ConverterParameter=-1}"/>
+        </DockPanel>
+
+        <!--Result List-->
+        <ListView Grid.Column="4" Grid.Row="0" Margin="0" ItemsSource="{Binding Results}" BorderThickness="0">
+            <ListView.ItemContainerStyle>
+                <Style TargetType="{x:Type ListViewItem}">
+                    <Setter Property="Background" Value="Transparent" />
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="{x:Type ListViewItem}">
+                                <Border
+                        BorderBrush="Transparent"
+                        BorderThickness="0"
+                        Background="{TemplateBinding Background}">
+                                    <ContentPresenter HorizontalAlignment="Stretch" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" Width="Auto" Margin="0" Content="{TemplateBinding Content}"/>
+                                </Border>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </ListView.ItemContainerStyle>
+            <i:Interaction.Behaviors>
+                <behaviors:ScrollIntoViewBehavior />
+            </i:Interaction.Behaviors>
+        </ListView>
+
+        <!--Results Buttons-->
+        <DockPanel Grid.Column="4" Grid.Row="1" LastChildFill="False">
+            <Button DockPanel.Dock="Right" Command="{Binding CopyResultsToClipboardCommand}" MinWidth="75" Margin="10,10,0,10" Style="{DynamicResource SquareButtonStyle}">Copy Results</Button>
+        </DockPanel>
+
+        <!--Progress Indicator-->
+        <controls:ProgressRing Grid.Column="4" Grid.Row="0" IsActive="{Binding IsBusy}"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+    </Grid>
+</UserControl>
