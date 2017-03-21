@@ -169,11 +169,13 @@ namespace RestRunner.ViewModels
             get { return _selectedEnvironment; }
             set
             {
-                //if this is set when updating SelectedEnvironment, the CredentialName property will be wiped out when the Credentials list changes if the list doesn't contain the current value
+                //if these are set when updating SelectedEnvironment, the CredentialName property will be wiped out when the Credentials list changes if the list doesn't contain the current value
                 var curCommandCategory = SelectedCommandCategory;
                 SelectedCommandCategory = null;
+                var selectedCommand = ViewModelLocator.Command.SelectedCommand;
+                var curCommandCredentialName = selectedCommand?.CredentialName;
                 var selectedChain = ViewModelLocator.CommandChain.SelectedChain;
-                var curChainCredentialName = ViewModelLocator.CommandChain.SelectedChain?.DefaultCommandCategory?.CredentialName;
+                var curChainCredentialName = selectedChain?.DefaultCommandCategory?.CredentialName;
                 if (selectedChain != null)
                     selectedChain.DefaultCommandCategory.CredentialName = null;
                 
@@ -183,6 +185,9 @@ namespace RestRunner.ViewModels
                 LastEnvironmentChange = DateTime.Now;
 
                 SelectedCommandCategory = curCommandCategory;
+
+                if (selectedCommand != null)
+                    selectedCommand.CredentialName = curCommandCredentialName;
                 if (selectedChain != null)
                     selectedChain.DefaultCommandCategory.CredentialName = curChainCredentialName;
 
