@@ -488,6 +488,9 @@ namespace RestRunner.Models
         /// <returns></returns>
         private string ReplaceVariables(string text, Dictionary<string, string> parameterValues, List<string> missingParameters = null)
         {
+            if (text == null)
+                return "";
+
             if (parameterValues.Count == 0)
                 return text;
 
