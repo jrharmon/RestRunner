@@ -563,7 +563,8 @@ namespace RestRunner.Models
             IsCaptureValuesOpen = CaptureValues.Count > 0;
             IsHeadersOpen = Headers.Count > 0;
             IsParametersOpen = Parameters.Count > 0;
-            IsSettingsOpen = string.IsNullOrWhiteSpace(ResourceUrl);
+            IsSettingsOpen = string.IsNullOrWhiteSpace(ResourceUrl) ||
+                (!string.IsNullOrEmpty(CredentialName) || !string.IsNullOrEmpty(Username) || !string.IsNullOrEmpty(Password));
         }
 
         /// <summary>
