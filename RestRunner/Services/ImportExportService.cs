@@ -211,8 +211,21 @@ namespace RestRunner.Services
 
             result.AddRange(Requests.Select(req => req.ToRestCommand(category)));
 
+            ConvertAuthHeaders(result, category);
+
+            return result;
+        }
+        /// <summary>
+        /// Convert any Authorization headers into username/passwords for the command.  If any one username/password is used
+        /// for at least half of the commands, then make that the category default, and update the individual commands to
+        /// reflect that.
+        /// </summary>
+        /// <param name="commands"></param>
+        /// <param name="category"></param>
+        private void ConvertAuthHeaders(IList<RestCommand> commands, RestCommandCategory category)
+        {
             //get a list of all authorization headers, and how many times they were used
-            var authHeaders = result.Aggregate(new Dictionary<string, int>(), (foundHeaders, curCommand) =>
+            var authHeaders = commands.Aggregate(new Dictionary<string, int>(), (foundHeaders, curCommand) =>
             {
                 var authHeader = curCommand.Headers?.SingleOrDefault(h => h.Key == "Authorization")?.Value;
                 if (authHeader != null)
@@ -221,40 +234,52 @@ namespace RestRunner.Services
                 return foundHeaders;
             });
 
-            //if the most common authorization is used in more than half of the commands, then use that as the default username/password for the category
+            //find the auth header that was used the most, and if it was used at least half of the time, then use it as the category default
             int maxHeaderCount = authHeaders.Count > 0 ? authHeaders.Values.Max() : 0;
-            if (maxHeaderCount > (result.Count / 2))
+            bool setCategoryDefault = maxHeaderCount > (commands.Count / 2);
+
+            //set the category credentials to the common auth if needed
+            string categoryAuthHeaderValue = null;
+            RestCredential categoryAuthCredential = null;
+            if (setCategoryDefault)
             {
-                var mostCommonAuth = authHeaders.First(a => a.Value == maxHeaderCount).Key;
-                var authCredential = BasicAuthConverter.BasicAuthToCredential(mostCommonAuth);
-                if (authCredential != null)
+                categoryAuthHeaderValue = authHeaders.First(a => a.Value == maxHeaderCount).Key;
+                categoryAuthCredential = BasicAuthConverter.BasicAuthToCredential(categoryAuthHeaderValue);
+                if (categoryAuthCredential != null)
                 {
-                    category.Username = authCredential.Username;
-                    category.Password = authCredential.Password;
-
-                    //update any command with different credentials than the new category default
-                    foreach (var command in result)
-                    {
-                        var curAuthHeader = command.Headers.FirstOrDefault(h => h.Key == "Authorization" && h.Value.StartsWith("Basic "));
-                        var curAuthValue = curAuthHeader?.Value;
-                        if (curAuthValue == null)
-                            command.CredentialName = "[No Credentials]";
-                        else if (curAuthValue != mostCommonAuth)
-                        {
-                            var curCredential = BasicAuthConverter.BasicAuthToCredential(curAuthValue);
-                            command.Username = curCredential.Username;
-                            command.Password = curCredential.Password;
-
-                            //remove the authorization header, as you set the username/password seprately
-                            command.Headers.Remove(curAuthHeader);
-                        }
-                    }
+                    category.Username = categoryAuthCredential.Username;
+                    category.Password = categoryAuthCredential.Password;
                 }
             }
 
-            //convert auth headers to username/password, even if no category was set
+            //update any command with different credentials than the new category default
+            foreach (var command in commands)
+            {
+                //try to find an auth header
+                var curAuthHeader = command.Headers.FirstOrDefault(h => h.Key == "Authorization" && h.Value.StartsWith("Basic "));
+                var curAuthHeaderValue = curAuthHeader?.Value;
 
-            return result;
+                //if there was no auth header, but a category default was set, explicitly state not to use credentials
+                if (curAuthHeaderValue == null)
+                {
+                    if (setCategoryDefault)
+                        command.CredentialName = "[No Credentials]";
+                }
+                //if there was an auth header
+                else
+                {
+                    //set the username/password if it differs from the category default
+                    if (curAuthHeaderValue != categoryAuthHeaderValue)
+                    {
+                        var curCredential = BasicAuthConverter.BasicAuthToCredential(curAuthHeaderValue);
+                        command.Username = curCredential.Username;
+                        command.Password = curCredential.Password;
+                    }
+
+                    //remove the authorization header, as you set the username/password seprately
+                    command.Headers.Remove(curAuthHeader);
+                }
+            }
         }
     }
 
