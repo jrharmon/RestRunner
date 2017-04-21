@@ -40,7 +40,7 @@ namespace RestRunner.ViewModels.Pages
 
         public IEnumerable<RestCommandCategory> Categories
         {
-            get { return _commands.Select(c => c.Category).Distinct(); }
+            get { return _commands.Select(c => c.Category).Distinct().OrderBy(c => c.Name); }
         }
 
         private ObservableCollection<RestCommand> _commands;
