@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using GalaSoft.MvvmLight.CommandWpf;
+using MahApps.Metro.Controls.Dialogs;
 using RestRunner.Design;
 using RestRunner.Models;
 using RestRunner.Services;
@@ -314,15 +315,23 @@ namespace RestRunner.ViewModels.Pages
             return _chainService.HasChanged(Chains);
         }
 
-        public void RemoveChain(RestCommandChain chain)
+        public async Task RemoveChain(RestCommandChain chain)
         {
+            var doRemove = await ViewModelLocator.Main.ShowMessageAsync("Delete Confirmation", $"Are you sure you want to delete the chain {chain.Label}?", MessageDialogStyle.AffirmativeAndNegative);
+            if (doRemove == MessageDialogResult.Negative)
+                return;
+
             Chains.Remove(chain);
             if (Chains.Count > 0)
                 SelectedChain = Chains[0];
         }
 
-        public void RemoveCommand(RestCommand command)
+        public async Task RemoveCommand(RestCommand command)
         {
+            var doRemove = await ViewModelLocator.Main.ShowMessageAsync("Delete Confirmation", $"Are you sure you want to delete the command {command.Label}?", MessageDialogStyle.AffirmativeAndNegative);
+            if (doRemove == MessageDialogResult.Negative)
+                return;
+
             //in case you are deleting the selected command, store its index, so you can select an adjacent one
             var curSelectedCommandIndex = SelectedChain.Commands.IndexOf(SelectedCommand);
 
@@ -370,9 +379,9 @@ namespace RestRunner.ViewModels.Pages
 
         public RelayCommand ExecuteSelectedChainMultipleParallelCommand => new RelayCommand(async () => await ExecuteSelectedChainMultipleParallel(), () => !IsBusy && ((SelectedChain?.Commands?.Count ?? 0) > 0));
 
-        public RelayCommand<RestCommandChain> RemoveChainCommand => new RelayCommand<RestCommandChain>(RemoveChain, c => Chains.Count > 1);
+        public RelayCommand<RestCommandChain> RemoveChainCommand => new RelayCommand<RestCommandChain>(async c => await RemoveChain(c), c => Chains.Count > 1);
 
-        public RelayCommand<RestCommand> RemoveCommandCommand => new RelayCommand<RestCommand>(RemoveCommand, c => (SelectedChain?.Commands?.Count ?? 0) > 1);
+        public RelayCommand<RestCommand> RemoveCommandCommand => new RelayCommand<RestCommand>(async c => await RemoveCommand(c), c => (SelectedChain?.Commands?.Count ?? 0) > 1);
 
         public RelayCommand<RestResult> RemoveResultCommand => new RelayCommand<RestResult>(RemoveResult, r => Results.Count > 0);
 

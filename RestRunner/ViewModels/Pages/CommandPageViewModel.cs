@@ -403,8 +403,12 @@ namespace RestRunner.ViewModels.Pages
             return _commandService.HasChanged(Commands);
         }
 
-        public void RemoveCommand(RestCommand command)
+        public async Task RemoveCommand(RestCommand command)
         {
+            var doRemove = await ViewModelLocator.Main.ShowMessageAsync("Delete Confirmation", $"Are you sure you want to delete the command {command.Label}?", MessageDialogStyle.AffirmativeAndNegative);
+            if (doRemove == MessageDialogResult.Negative)
+                return;
+
             Commands.Remove(command);
 
             if (Commands.Count > 0)
@@ -453,7 +457,7 @@ namespace RestRunner.ViewModels.Pages
 
         public RelayCommand ExecuteSelectedCommandParameterListCommand => new RelayCommand(async () => await ExecuteSelectedCommandParameterList(), () => !IsBusy);
 
-        public RelayCommand<RestCommand> RemoveCommandCommand => new RelayCommand<RestCommand>(RemoveCommand, c => Commands.Count > 1);
+        public RelayCommand<RestCommand> RemoveCommandCommand => new RelayCommand<RestCommand>(async c => await RemoveCommand(c), c => Commands.Count > 1);
 
         public RelayCommand<RestResult> RemoveResultCommand => new RelayCommand<RestResult>(RemoveResult, r => Results.Count > 0);
 
