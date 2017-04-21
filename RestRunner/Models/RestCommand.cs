@@ -28,10 +28,23 @@ namespace RestRunner.Models
     class RestCommandException : Exception
     {
         public RestCommandException(string message)
-            : base(message)
+            : base("[REST Runner]: " + message)
         {
             
         }
+    }
+
+    /// <summary>
+    /// Get information about the credential name and username/password for this execution, based on
+    /// the category and environment information
+    /// </summary>
+    struct ExecutionCredentialInfo
+    {
+        public string CredentialName { get; set; }
+        public RestCredential RestCredential { get; set; } //the actual credential object loaded from CredentialName.  null if credentialName does not exist in the current environment
+        public string Username { get; set; }
+        public string Password { get; set; }
+        public HttpBasicAuthenticator BasicAuthenticator { get; set; }
     }
 
     /// <summary>
@@ -41,6 +54,8 @@ namespace RestRunner.Models
     [DebuggerDisplay("ID: {Id}, Label: {Label}")]
     public class RestCommand : ObservableBase, ISerializable, IEquatable<RestCommand>
     {
+        public const string NoCredentialName = "[No Credentials]"; //the value of CredentialName that means to not use any credentials, even if the category default is set
+
         public static DateTime LastExecution { get; private set; } = DateTime.MinValue; //when starting the app, default so that any warning delays will be hit
 
         public RestCommand(string resourceUrl, string body, Method verb, Guid? id = null)
@@ -271,7 +286,8 @@ namespace RestRunner.Models
                 client = CreateClient(out resourceUrl, paramValues, missingParameters);
 
                 //setup authentication
-                client.Authenticator = CreateBasicAuthenticator(globalEnvironment, environment, paramValues, missingParameters);
+                var credentialInformation = GetExecutionCredentialInfo(globalEnvironment, environment, paramValues, missingParameters);
+                client.Authenticator = credentialInformation.BasicAuthenticator;
 
                 //create the request
                 request = new RestRequest(resourceUrl, Verb);
@@ -300,7 +316,7 @@ namespace RestRunner.Models
 
                 //handle any errors
                 if (response == null)
-                    throw new RestCommandException("[REST Runner]: Response was null");
+                    throw new RestCommandException("Response was null");
                 if (response.ResponseStatus == ResponseStatus.Aborted)
                     throw new RestCommandException($"The command '{Label}' was aborted");
                 if (response.ErrorException?.InnerException?.Message?.Contains("127.0.0.1:8888") ?? false)
@@ -318,14 +334,32 @@ namespace RestRunner.Models
                     CaptureValuesFromJson(resultString, capturedValues); //grab any capture values
                 }
 
+                //if the request appears to have bad credentials, let the user know what credentials were used
+                var invalidCredentialName = !string.IsNullOrEmpty(credentialInformation.CredentialName) &&
+                                            credentialInformation.RestCredential == null &&
+                                            credentialInformation.CredentialName != NoCredentialName;
+                if ((response.StatusCode == HttpStatusCode.Unauthorized) || (response.StatusCode == HttpStatusCode.Forbidden) || (invalidCredentialName))
+                {
+                    string message;
+                    if (invalidCredentialName)
+                        message = "The credential used was " + CredentialName;
+                    else if (!string.IsNullOrEmpty(Username))
+                        message = "The username used for authentication was " + Username;
+                    else
+                        message = "No authentication was used";
+
+                    var newLinePrefix = (resultString?.Length ?? 0) > 0 ? $"{Environment.NewLine}{Environment.NewLine}" : ""; //if there was content, then add some extra new lines for spacing
+                    resultString += $"{newLinePrefix}[REST Runner]: " + message;
+                }
+
                 var succeeded = (int) response.StatusCode < 300;
-                ReadInputHeader(requestHandle?.WebRequest, inputHeaders);
+                ReadInputHeaders(requestHandle?.WebRequest, inputHeaders);
                 return new RestResult(requestBody, resultString, capturedValues, duration, response, inputHeaders.ToString(), succeeded, this);
             }
             catch (JsonReaderException ex)
             {
                 var responseBody = $"{ex.Message}{Environment.NewLine}{response.Content}";
-                ReadInputHeader(requestHandle?.WebRequest, inputHeaders);
+                ReadInputHeaders(requestHandle?.WebRequest, inputHeaders);
                 return new RestResult(requestBody, responseBody, new Dictionary<string, string>(), duration, response, inputHeaders.ToString(), false, this);
             }
             catch (Exception ex)
@@ -339,7 +373,7 @@ namespace RestRunner.Models
                     responseBody += $"{Environment.NewLine}{Environment.NewLine}[REST Runner]: The following parameters were missing when making this request: {string.Join(", ", missingParameters.Distinct())}";
 
                 if (requestHandle?.WebRequest != null)
-                    ReadInputHeader(requestHandle?.WebRequest, inputHeaders);
+                    ReadInputHeaders(requestHandle?.WebRequest, inputHeaders);
                 else if (request != null)
                     inputHeaders.AppendLine($"{request.Method} {client?.BaseUrl}{request.Resource}"); //if you can't read in the real input headers, at least add the URL and method, to see what was attempted
                 return new RestResult(requestBody, responseBody, new Dictionary<string, string>(), duration, response, inputHeaders.ToString(), false, this);
@@ -383,46 +417,6 @@ namespace RestRunner.Models
             }
         }
 
-        /// <summary>
-        /// Setup authentication, if needed (only use the username/password if there is no credential name)
-        /// </summary>
-        /// <returns></returns>
-        private HttpBasicAuthenticator CreateBasicAuthenticator(RestEnvironment globalEnvironment, RestEnvironment environment, Dictionary<string, string> parameterValues, List<string> missingParameters = null)
-        {
-            //determine whether to use this commands credentials, or the ones from the category
-            var useCommandAuth = HasAuthorization;
-
-            //get the credential name, and default username/password
-            var credentialName = useCommandAuth ? CredentialName : Category.CredentialName;
-            var username = useCommandAuth ? Username : Category.Username;
-            var password = useCommandAuth ? Password : Category.Password;
-
-            //if the credential name is set, and is present in the environment (or the global one), then use it instead of the username/password fields
-            if (!string.IsNullOrEmpty(credentialName))
-            {
-                if ((environment?.Credentials.Any(c => c.Name == credentialName) ?? false))
-                {
-                    var credential = environment.Credentials.First(c => c.Name == credentialName);
-                    username = credential.Username;
-                    password = credential.Password;
-                }
-                else if ((globalEnvironment?.Credentials.Any(c => c.Name == credentialName) ?? false))
-                {
-                    var credential = globalEnvironment.Credentials.First(c => c.Name == credentialName);
-                    username = credential.Username;
-                    password = credential.Password;
-                }
-            }
-
-            //if there is no username/password data, then don't create the authenticator
-            if ((string.IsNullOrEmpty(username)) && (string.IsNullOrEmpty(password)))
-                return null;
-
-            return new HttpBasicAuthenticator(
-                    ReplaceVariables(username, parameterValues, missingParameters),
-                    ReplaceVariables(password, parameterValues, missingParameters));
-        }
-
         private IRestClient CreateClient(out string resourceUrl, Dictionary<string, string> parameterValues, List<string> missingParameters = null)
         {
             //setup the base and resource URLs (since baseUrl can't be empty, if it comes in that way, then just split up resourceUrl in two)
@@ -461,12 +455,65 @@ namespace RestRunner.Models
             catch (Exception)
             {
                 var url = baseUrl + (string.IsNullOrWhiteSpace(resourceUrl) ? "" : resourceUrl);
-                throw new Exception("[REST Runner]: Request could not be attempted.  Invalid URL: " + url);
+                throw new RestCommandException("Request could not be attempted.  Invalid URL: " + url);
             }
         }
 
+        /// <summary>
+        /// Determine authentication information (only use the username/password if there is no credential name)
+        /// </summary>
+        /// <param name="globalEnvironment"></param>
+        /// <param name="environment"></param>
+        /// <param name="parameterValues"></param>
+        /// <param name="missingParameters"></param>
+        /// <returns></returns>
+        private ExecutionCredentialInfo GetExecutionCredentialInfo(RestEnvironment globalEnvironment, RestEnvironment environment, Dictionary<string, string> parameterValues, List<string> missingParameters = null)
+        {
+            //get the credential name, and default username/password
+            RestCredential restCredential = null;
+            var useCommandAuth = HasAuthorization; //determine whether to use this commands credentials, or the ones from the category
+            var credentialName = useCommandAuth ? CredentialName : Category.CredentialName;
+            var username = useCommandAuth ? Username : Category.Username;
+            var password = useCommandAuth ? Password : Category.Password;
+
+            //if the credential name is set, and is present in the environment (or the global one), then use it instead of the username/password fields
+            if (!string.IsNullOrEmpty(credentialName))
+            {
+                if ((environment?.Credentials.Any(c => c.Name == credentialName) ?? false))
+                {
+                    restCredential = environment.Credentials.First(c => c.Name == credentialName);
+                    username = restCredential.Username;
+                    password = restCredential.Password;
+                }
+                else if ((globalEnvironment?.Credentials.Any(c => c.Name == credentialName) ?? false))
+                {
+                    restCredential = globalEnvironment.Credentials.First(c => c.Name == credentialName);
+                    username = restCredential.Username;
+                    password = restCredential.Password;
+                }
+            }
+
+            //if there is no username/password data, then don't create the authenticator
+            HttpBasicAuthenticator basicAuthenticator = null;
+            if ((!string.IsNullOrEmpty(username)) || (!string.IsNullOrEmpty(password)))
+            {
+                username = ReplaceVariables(username, parameterValues, missingParameters);
+                password = ReplaceVariables(password, parameterValues, missingParameters);
+                basicAuthenticator = new HttpBasicAuthenticator(username, password);
+            }
+
+            return new ExecutionCredentialInfo
+            {
+                CredentialName = credentialName,
+                RestCredential = restCredential,
+                Username = username,
+                Password = password,
+                BasicAuthenticator = basicAuthenticator
+            };
+        }
+
         //set the input headers display info for the RestResult
-        private void ReadInputHeader(HttpWebRequest webRequest, StringBuilder inputHeaders)
+        private void ReadInputHeaders(HttpWebRequest webRequest, StringBuilder inputHeaders)
         {
             if (webRequest == null)
                 return;

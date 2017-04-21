@@ -263,7 +263,7 @@ namespace RestRunner.Services
                 if (curAuthHeaderValue == null)
                 {
                     if (setCategoryDefault)
-                        command.CredentialName = "[No Credentials]";
+                        command.CredentialName = RestCommand.NoCredentialName;
                 }
                 //if there was an auth header
                 else
