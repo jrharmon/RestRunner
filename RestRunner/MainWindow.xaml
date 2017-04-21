@@ -214,7 +214,7 @@
                         <TextBox Text="{Binding SelectedEnvironment.ExecutionWarningDelayMinutes, Converter={StaticResource IntToWarningDelayConverter}}" controls:TextBoxHelper.Watermark="Execution Warning Delay (in minutes)" Margin="0,5" PreviewTextInput="TextBox_OnPreviewTextInput" />
                         <TextBox Text="{Binding SelectedEnvironment.Description}" controls:TextBoxHelper.Watermark="Description" Margin="0,5" AcceptsReturn="True" MinHeight="50" TextWrapping="Wrap" />
                         <TextBlock Text="Variables" Margin="0,10,0,0" FontSize="{StaticResource FlyoutHeaderFontSize}"/>
-                        <localcontrols:CaptionedKeyValuePairEditGrid Items="{Binding SelectedEnvironment.Variables}" KeyWatermark="Header" ValueWatermark="Value" />
+                        <localcontrols:CaptionedKeyValuePairEditGrid Items="{Binding SelectedEnvironment.Variables}" KeyWatermark="Name" ValueWatermark="Value" />
                         <TextBlock Text="Credentials" Margin="0,10,0,0" FontSize="{StaticResource FlyoutHeaderFontSize}"/>
                         <localcontrols:RestCredentialEditGrid Items="{Binding SelectedEnvironment.Credentials}" />
                         <Button Content="Globals" Command="{Binding GlobalsDisplayToggleCommand}" Margin="0,10" HorizontalAlignment="Left" MinWidth="75" />
