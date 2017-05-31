@@ -282,8 +282,9 @@ namespace RestRunner.Models
                     param.UpdatePresetValues();
 
                 //setup the base and resource URLs (since baseUrl can't be empty, if it comes in that way, then just split up resourceUrl in two)
+                string baseUrl;
                 string resourceUrl;
-                client = CreateClient(out resourceUrl, paramValues, missingParameters);
+                client = CreateClient(out baseUrl, out resourceUrl, paramValues, missingParameters);
 
                 //setup authentication
                 var credentialInformation = GetExecutionCredentialInfo(globalEnvironment, environment, paramValues, missingParameters);
@@ -299,12 +300,23 @@ namespace RestRunner.Models
                     : "application/json";
                 request.AddParameter(contentType, requestBody, ParameterType.RequestBody);
 
-                //add HTTP Headers
+                //add HTTP Headers/Cookies
                 foreach (var header in Headers)
                 {
-                    request.AddHeader(ReplaceVariables(header.Key, paramValues, missingParameters),
-                        ReplaceVariables(header.Value, paramValues, missingParameters));
+                    //the "Cookie" header will be ignored, so you must parse it, and manually set the cookies for the client
+                    if (header.Key == "Cookie")
+                    {
+                        client.CookieContainer = new CookieContainer();
+                        client.CookieContainer.SetCookies(new Uri(baseUrl), header.Value.Replace(';', ','));
+                    }
+                    else
+                        request.AddHeader(ReplaceVariables(header.Key, paramValues, missingParameters), ReplaceVariables(header.Value, paramValues, missingParameters));
                 }
+
+                //request.AddCookie("SesstionToken", "alsdjfladf");
+                //request.AddCookie("SesstionToken2", "alsdjfladf");
+                var cookies = new CookieContainer();
+                cookies.SetCookies(new Uri("http://localhost"), @"SecretAccessKey=N9IpEBVjZUekUDneCsLQy/R3XxxQybXecQfriUgL,SessionToken=FQoDYXdzEJj//////////wEaDCIZBUuFmbf3o0sR3SKwATfVi4YLGl2c0DEmP3K8OG972wPLXSSy2prJC6ApS21BOM+4isqnix5wDmTutqoReDMcCErdnFNCwfhXZbcyVSy1qeq15Xu4nAkM+XyUpWNVVoBExuOR2jglMQBpbIWh4fWirupsU5RzLioRy7ryK7JMd1OuN1HtmJw36K2pI0uKFAx3o3jCTLLeD2/XenvURXzAEqULczvggLwRCvhCUJQ0TW7wdZMZK4MCzO+qkJDuKMPf08gF");
 
                 // execute the request
                 var startTime = DateTime.Now;
@@ -417,10 +429,10 @@ namespace RestRunner.Models
             }
         }
 
-        private IRestClient CreateClient(out string resourceUrl, Dictionary<string, string> parameterValues, List<string> missingParameters = null)
+        private IRestClient CreateClient(out string baseUrl, out string resourceUrl, Dictionary<string, string> parameterValues, List<string> missingParameters = null)
         {
             //setup the base and resource URLs (since baseUrl can't be empty, if it comes in that way, then just split up resourceUrl in two)
-            var baseUrl = ReplaceVariables(Category.BaseUrl, parameterValues, missingParameters);
+            baseUrl = ReplaceVariables(Category.BaseUrl, parameterValues, missingParameters);
             resourceUrl = ReplaceVariables(ResourceUrl, parameterValues, missingParameters);
             resourceUrl = Uri.EscapeUriString(resourceUrl);
 
