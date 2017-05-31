@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Deployment.Application;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Controls;
@@ -52,6 +53,8 @@ namespace RestRunner.ViewModels
         }
 
         #region Properties
+
+        public string ApplicationVersion => ApplicationDeployment.IsNetworkDeployed ? "Version: " + ApplicationDeployment.CurrentDeployment.CurrentVersion.ToString() : "";
 
         public string EnvironmentButtonText => "Environment" + (SelectedEnvironment != null ? $": {SelectedEnvironment.Name}" : "");
 

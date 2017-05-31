@@ -247,6 +247,7 @@
                             <Button Content="Import From Postman" Command="{Binding ImportPostmanCommand}" HorizontalAlignment="Left" MinWidth="75" Margin="10,10" Style="{DynamicResource SquareButtonStyle}" />
                         </StackPanel>
                         <Button Content="Export" Command="{Binding ExportCommand}" IsEnabled="True" HorizontalAlignment="Left" MinWidth="75" Margin="0,10" Style="{DynamicResource SquareButtonStyle}" />
+                        <TextBlock Text="{Binding ApplicationVersion}"></TextBlock>
                     </StackPanel>
                 </ScrollViewer>
             </controls:Flyout>
