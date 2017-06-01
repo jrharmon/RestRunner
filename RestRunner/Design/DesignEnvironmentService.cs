@@ -23,23 +23,55 @@ namespace RestRunner.Design
             if (_environments != null)
                 return _environments;
 
-            var envCredentials = new ObservableCollection<RestCredential>
+            var locVariables = new ObservableCollection<CaptionedKeyValuePair>
             {
-                new RestCredential("Test Credential", "username", "password")
+                new CaptionedKeyValuePair("service-host", "http://localhost:5555"),
             };
-
-            var envVariables = new ObservableCollection<CaptionedKeyValuePair>
+            var devVariables = new ObservableCollection<CaptionedKeyValuePair>
+            {
+                new CaptionedKeyValuePair("service-host", "http://localhost:5555"),
+            };
+            var tstVariables = new ObservableCollection<CaptionedKeyValuePair>
+            {
+                new CaptionedKeyValuePair("service-host", "http://localhost:5555"),
+            };
+            var stgVariables = new ObservableCollection<CaptionedKeyValuePair>
+            {
+                new CaptionedKeyValuePair("service-host", "http://localhost:5555"),
+            };
+            var prdVariables = new ObservableCollection<CaptionedKeyValuePair>
             {
                 new CaptionedKeyValuePair("service-host", "http://localhost:5555"),
             };
 
+            var locCredentials = new ObservableCollection<RestCredential>
+            {
+                new RestCredential("Test Credential", "username", "password")
+            };
+            var devCredentials = new ObservableCollection<RestCredential>
+            {
+                new RestCredential("Test Credential", "username", "password")
+            };
+            var tstCredentials = new ObservableCollection<RestCredential>
+            {
+                new RestCredential("Test Credential", "username", "password")
+            };
+            var stgCredentials = new ObservableCollection<RestCredential>
+            {
+                new RestCredential("Test Credential", "username", "password")
+            };
+            var prdCredentials = new ObservableCollection<RestCredential>
+            {
+                new RestCredential("Test Credential", "username", "password")
+            };
+
             _environments = new List<RestEnvironment>()
             {
-                new RestEnvironment("local", "", envVariables, envCredentials),
-                new RestEnvironment("dev", "", envVariables, envCredentials),
-                new RestEnvironment("test", "", envVariables, envCredentials),
-                new RestEnvironment("stage", "", envVariables, envCredentials, 5),
-                new RestEnvironment("prod", "", envVariables, envCredentials, 1)
+                new RestEnvironment("local", "", locVariables, locCredentials),
+                new RestEnvironment("dev", "", devVariables, devCredentials),
+                new RestEnvironment("test", "", tstVariables, tstCredentials),
+                new RestEnvironment("stage", "", stgVariables, stgCredentials, 5),
+                new RestEnvironment("prod", "", prdVariables, prdCredentials, 1)
             };
 
             return _environments;
