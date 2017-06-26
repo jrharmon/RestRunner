@@ -354,9 +354,9 @@ namespace RestRunner.Models
                 {
                     string message;
                     if (invalidCredentialName)
-                        message = "The credential used was " + CredentialName;
-                    else if (!string.IsNullOrEmpty(Username))
-                        message = "The username used for authentication was " + Username;
+                        message = "The credential used was " + credentialInformation.CredentialName;
+                    else if (!string.IsNullOrEmpty(credentialInformation.Username))
+                        message = "The username used for authentication was " + credentialInformation.Username;
                     else
                         message = "No authentication was used";
 
