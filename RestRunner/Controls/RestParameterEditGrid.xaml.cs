@@ -58,7 +58,7 @@ namespace RestRunner.Controls
 
         protected override string GetMatchingTemplateTextBoxName(TextBox textBox)
         {
-            return (textBox == txtNewName) ? "txtName" : "txtValue";
+            return (textBox == txtNewName) ? "txtName" : "cmbValue";
         }
     }
 }

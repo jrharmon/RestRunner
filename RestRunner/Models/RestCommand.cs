@@ -315,8 +315,8 @@ namespace RestRunner.Models
 
                 //request.AddCookie("SesstionToken", "alsdjfladf");
                 //request.AddCookie("SesstionToken2", "alsdjfladf");
-                var cookies = new CookieContainer();
-                cookies.SetCookies(new Uri("http://localhost"), @"SecretAccessKey=N9IpEBVjZUekUDneCsLQy/R3XxxQybXecQfriUgL,SessionToken=FQoDYXdzEJj//////////wEaDCIZBUuFmbf3o0sR3SKwATfVi4YLGl2c0DEmP3K8OG972wPLXSSy2prJC6ApS21BOM+4isqnix5wDmTutqoReDMcCErdnFNCwfhXZbcyVSy1qeq15Xu4nAkM+XyUpWNVVoBExuOR2jglMQBpbIWh4fWirupsU5RzLioRy7ryK7JMd1OuN1HtmJw36K2pI0uKFAx3o3jCTLLeD2/XenvURXzAEqULczvggLwRCvhCUJQ0TW7wdZMZK4MCzO+qkJDuKMPf08gF");
+                //var cookies = new CookieContainer();
+                //cookies.SetCookies(new Uri("http://localhost"), @"SecretAccessKey=N9IpEBVjZUekUDneCsLQy/R3XxxQybXecQfriUgL,SessionToken=FQoDYXdzEJj//////////wEaDCIZBUuFmbf3o0sR3SKwATfVi4YLGl2c0DEmP3K8OG972wPLXSSy2prJC6ApS21BOM+4isqnix5wDmTutqoReDMcCErdnFNCwfhXZbcyVSy1qeq15Xu4nAkM+XyUpWNVVoBExuOR2jglMQBpbIWh4fWirupsU5RzLioRy7ryK7JMd1OuN1HtmJw36K2pI0uKFAx3o3jCTLLeD2/XenvURXzAEqULczvggLwRCvhCUJQ0TW7wdZMZK4MCzO+qkJDuKMPf08gF");
 
                 // execute the request
                 var startTime = DateTime.Now;

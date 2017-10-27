@@ -24,7 +24,7 @@
                             <ColumnDefinition Width="Auto" SharedSizeGroup="B" />
                         </Grid.ColumnDefinitions>
                         <TextBox Name="txtName" Grid.Column="0" MinWidth="100" Margin="5,0" Text="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                        <ComboBox Grid.Column="1" Text="{Binding Value}" Margin="5,0" IsEditable="True"
+                        <ComboBox Name="cmbValue"  Grid.Column="1" Text="{Binding Value}" Margin="5,0" IsEditable="True"
                                   ItemsSource="{Binding PresetValues}"
                                   DisplayMemberPath="." />
                         <Button  Grid.Column="2" Margin="5,0" MinWidth="25" Click="RemoveButton_Click" IsTabStop="False" Content="✖" />

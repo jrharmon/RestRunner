@@ -80,15 +80,26 @@ namespace RestRunner.Controls
 
             //find the data template of the new ListViewItem
             var listViewItem = (ListViewItem)MainListView.ItemContainerGenerator.ContainerFromIndex(MainListView.Items.Count - 1);
-            var myContentPresenter = FindVisualChild<ContentPresenter>(listViewItem);
-            DataTemplate myDataTemplate = myContentPresenter.ContentTemplate;
+            var contentPresenter = FindVisualChild<ContentPresenter>(listViewItem);
+            DataTemplate dataTemplate = contentPresenter.ContentTemplate;
 
 
-            var myTextBox = (TextBox)myDataTemplate.FindName(templateTextBoxName, myContentPresenter);
+            var newControl = dataTemplate.FindName(templateTextBoxName, contentPresenter);
 
-            //select the text box, moving the cursor to the end, so the user can continue typing
-            myTextBox.Focus();
-            myTextBox.CaretIndex = myTextBox.Text.Length;
+            //select the text box, or combo box, moving the cursor to the end, so the user can continue typing
+            if (newControl is TextBox)
+            {
+                var newTextBox = (TextBox)newControl;
+                newTextBox.Focus();
+                newTextBox.CaretIndex = newTextBox.Text.Length;
+            }
+            else
+            {
+                var newComboBox = (ComboBox)newControl;
+                var innerTextBox = (TextBox)newComboBox.Template.FindName("PART_EditableTextBox", newComboBox);
+                innerTextBox.Focus();
+                innerTextBox.CaretIndex = innerTextBox.Text.Length;
+            }
 
             //clear out the original TextBox, so it will be ready for the next record to be started from it
             srcTextBox.Text = "";
