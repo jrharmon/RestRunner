@@ -41,7 +41,7 @@
             </TabItem>
             <TabItem Header="Response">
                 <TextBox Text="{Binding ResponseBody, Mode=OneWay}" Background="Transparent" BorderThickness="0"
-                         IsReadOnly="True" IsTabStop="False" TextWrapping="Wrap" FontFamily="Consolas" />
+                         IsReadOnly="True" IsTabStop="False" TextWrapping="NoWrap" FontFamily="Consolas" MaxHeight="2000" />
             </TabItem>
             <TabItem Header="Headers">
                 <StackPanel Orientation="Vertical">

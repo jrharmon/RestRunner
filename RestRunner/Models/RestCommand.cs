@@ -434,7 +434,7 @@ namespace RestRunner.Models
             //setup the base and resource URLs (since baseUrl can't be empty, if it comes in that way, then just split up resourceUrl in two)
             baseUrl = ReplaceVariables(Category.BaseUrl, parameterValues, missingParameters);
             resourceUrl = ReplaceVariables(ResourceUrl, parameterValues, missingParameters);
-            resourceUrl = Uri.EscapeUriString(resourceUrl);
+            //resourceUrl = Uri.EscapeUriString(resourceUrl); //can't remember why this was added, but probably should never be used.  https://stackoverflow.com/questions/4396598/whats-the-difference-between-escapeuristring-and-escapedatastring
 
             try
             {

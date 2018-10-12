@@ -4,6 +4,7 @@ using System.Configuration;
 using System.Data;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using System.Windows;
 using GalaSoft.MvvmLight.Threading;
@@ -47,6 +48,9 @@ namespace RestRunner
 
             //increase the max number of outsbound connections the app can make
             System.Net.ServicePointManager.DefaultConnectionLimit = 1000;
+
+            //support TLS 1.2
+            System.Net.ServicePointManager.SecurityProtocol = System.Net.ServicePointManager.SecurityProtocol | SecurityProtocolType.Tls12;
 
             //allow connection to servers with an invalid security certificate.  do not use this unless you are sure the servers are safe
             if (Settings.Default.IgnoreCertificateErrors)
