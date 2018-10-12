@@ -13,3 +13,4 @@ InitializeEnvironmentVariables.ps1 that sets the required sessions environment v
 Example:
 
     New-Item -Name publishDir -Path env: -Value "\\myserver\deployables\RestRunner\" | out-null
+    New-Item -Name publishPortableDir -Path env: -Value "\\myserver\deployables\RestRunner\RestRunner Portable" | out-null
